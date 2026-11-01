@@ -10,7 +10,6 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 YOUR_ID = 1407065909654323303
 
-# CHANGE THESE TO WHATEVER SCRIPTS YOU WANT FOR THE *OTHER* CHANNEL
 SCRIPTS = {
     "duels": {"name": "Duels Fork - Other Channel", "desc": "This version only shows in other channel", "loadstring": 'loadstring(game:HttpGet("https://pixel-perfect-render-80435.lovable.app/raw/t/10618fce6b9b35ed92d2f2ca1a4e6"))()'},
     "bladeball": {"name": "Blade Ball Other", "desc": "Alt version", "loadstring": 'loadstring(game:HttpGet("https://pastebin.com/raw/xxxx"))()'},
@@ -28,7 +27,7 @@ async def find(ctx, *, q=None):
     q = q.lower()
     for k, v in SCRIPTS.items():
         if q in k.lower() or q in v["name"].lower():
-            embed = discord.Embed(title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400)
+            embed = 【entity-discord¦canonical_name=discord】.Embed(title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400)
             await ctx.send(embed=embed)
             load = v["loadstring"]
             await ctx.send(f"**📱 Mobile 1-tap:**\n`{load}`")
@@ -50,15 +49,24 @@ async def say(ctx, *, message=None):
     except: pass
     await ctx.send(message)
 
-# Keeps Render alive
 app = Flask(__name__)
 @app.route("/")
-def home(): return "BOT 2 ONLINE"
+def home(): 
+    return "BOT 2 ONLINE" if bot.is_ready() else "BOT OFFLINE - Flask up but bot not connected"
 
 def run_flask():
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
 
-threading.Thread(target=run_flask).start()
-
-# NEVER put token here - Render will add it
-bot.run(os.getenv("DISCORD_TOKEN"))
+if __name__ == "__main__":
+    threading.Thread(target=run_flask, daemon=True).start()
+    
+    token = os.getenv("DISCORD_TOKEN")
+    if not token:
+        print("CRITICAL: DISCORD_TOKEN is None! Go to Render > Environment and add it.")
+        # keep alive so you can see the log
+        import time
+        while True: time.sleep(3600)
+    
+    print("Token found, starting bot...")
+    bot.run(token)
