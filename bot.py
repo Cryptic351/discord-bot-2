@@ -27,11 +27,11 @@ async def find(ctx, *, q=None):
     q = q.lower()
     for k, v in SCRIPTS.items():
         if q in k.lower() or q in v["name"].lower():
-            embed = 【entity-discord¦canonical_name=discord】.Embed(title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400)
+            embed = discord.Embed(title=v["name"], description=v["desc"], color=0xFFD400)
             await ctx.send(embed=embed)
             load = v["loadstring"]
-            await ctx.send(f"**📱 Mobile 1-tap:**\n`{load}`")
-            await ctx.send(f"**💻 PC:**\n```lua\n{load}\n```")
+            await ctx.send(f"**Mobile 1-tap:**\n`{load}`")
+            await ctx.send(f"**PC:**\n```lua\n{load}\n```")
             return
     await ctx.send("Not found. Try `!list`")
 
@@ -42,17 +42,22 @@ async def list_s(ctx):
 @bot.command()
 async def say(ctx, *, message=None):
     if ctx.author.id != YOUR_ID:
-        await ctx.send("❌ Only creator", delete_after=5)
+        await ctx.send("Only creator", delete_after=5)
         return
-    if not message: return
-    try: await ctx.message.delete()
-    except: pass
+    if not message:
+        return
+    try:
+        await ctx.message.delete()
+    except:
+        pass
     await ctx.send(message)
 
 app = Flask(__name__)
+
 @app.route("/")
-def home(): 
-    return "BOT 2 ONLINE" if bot.is_ready() else "BOT OFFLINE - Flask up but bot not connected"
+def home():
+    status = "BOT ONLINE" if bot.is_ready() else "BOT OFFLINE - Flask up but bot not connected"
+    return status
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
@@ -60,13 +65,11 @@ def run_flask():
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
-    
     token = os.getenv("DISCORD_TOKEN")
     if not token:
-        print("CRITICAL: DISCORD_TOKEN is None! Go to Render > Environment and add it.")
-        # keep alive so you can see the log
+        print("CRITICAL: DISCORD_TOKEN is None! Add it in Render > Environment")
         import time
-        while True: time.sleep(3600)
-    
+        while True:
+            time.sleep(3600)
     print("Token found, starting bot...")
     bot.run(token)
