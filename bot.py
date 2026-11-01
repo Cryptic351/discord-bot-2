@@ -61,4 +61,4 @@ def run_flask():
 threading.Thread(target=run_flask).start()
 
 # NEVER put token here - Render will add it
-bot.run(os.getenv("DISCORD_TOKEN")) this is what in bot.py the bot has been working but it stopped
+bot.run(os.getenv("DISCORD_TOKEN")) 
