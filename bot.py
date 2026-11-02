@@ -6,7 +6,6 @@ from discord.ext import commands
 from flask import Flask
 
 intents = discord.Intents.default()
-# Message content intent is optional now for slash commands, but good to keep
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -131,9 +130,7 @@ async def say(interaction: discord.Interaction, message: str):
     )
     return
 
-  await interaction.response.send_message(
-      "✅ Message sent!", ephemeral=True
-  )  Ack command privately
+  await interaction.response.send_message("✅ Message sent!", ephemeral=True)
   await interaction.channel.send(message)
 
 
