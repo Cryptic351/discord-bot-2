@@ -13,8 +13,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # SCRIPT DICTIONARY
 SCRIPTS = {
     "duels": {
-        "name": "LUA STUDIO-DUELS",
-        "desc": "Challenge other members, test your skills, and prove yourself in intense 1v1 battles.",
+        "name": "LUA STUDIO DUELS",
+        "desc": "lua studio",
         "loadstring": (
             'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cryptic351/luastudio8/refs/heads/main/(28).lua"))()'
         ),
@@ -51,12 +51,13 @@ async def find(interaction: discord.Interaction, query: str):
       embed.set_footer(text="LUA STUDIO ON TOP | IM TOO GOOD")
       load = v["loadstring"]
 
-      # 1. Respond to the interaction with the embed first
-      await interaction.response.send_message(embed=embed)
-      
-      # 2. Send the mobile and PC code blocks right underneath using followup
-      await interaction.followup.send(
-          f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC / Normal:**\n```lua\n{load}\n```"
+      # Send the embed and both loadstrings together in a single response
+      await interaction.response.send_message(
+          embed=embed,
+          content=(
+              f"**📱 Mobile 1-tap:**\n`{load}`\n\n"
+              f"**💻 PC / Normal:**\n`{load}`"
+          ),
       )
       return
 
@@ -124,48 +125,4 @@ async def delete_script(interaction: discord.Interaction, key: str):
     )
     return
 
-  key_clean = key.lower()
-  if key_clean in SCRIPTS:
-    del SCRIPTS[key_clean]
-    await interaction.response.send_message(
-        f"🗑️ Successfully deleted script: `{key_clean}`"
-    )
-  else:
-    await interaction.response.send_message(
-        f"❌ Script `{key_clean}` not found.", ephemeral=True
-    )
-
-
-@bot.tree.command(
-    name="say", description="Make the bot say a message (Admin only)"
-)
-@app_commands.describe(message="The message you want the bot to post")
-async def say(interaction: discord.Interaction, message: str):
-  if not interaction.user.guild_permissions.administrator:
-    await interaction.response.send_message(
-        "❌ You need **Administrator** permissions to use this command.",
-        ephemeral=True,
-    )
-    return
-
-  await interaction.response.send_message("✅ Message sent!", ephemeral=True)
-  await interaction.channel.send(message)
-
-
-# Keeps Render alive via Flask web server
-app = Flask(__name__)
-
-
-@app.route("/")
-def home():
-  return "BOT 2 ONLINE"
-
-
-def run_flask():
-  app.run(host="0.0.0.0", port=10000)
-
-
-threading.Thread(target=run_flask).start()
-
-# Run the Discord bot using the token from Render Environment variables
-bot.run(os.getenv("DISCORD_TOKEN"))
+  key_clean = key
