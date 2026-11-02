@@ -1,11 +1,14 @@
 import os
 import threading
 import discord
+from discord import app_commands
 from discord.ext import commands
 from flask import Flask
 
 intents = discord.Intents.default()
+# Message content intent is optional now for slash commands, but good to keep
 intents.message_content = True
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # SCRIPT DICTIONARY
@@ -29,119 +32,109 @@ SCRIPTS = {
 
 @bot.event
 async def on_ready():
+  try:
+    # Sync slash commands with Discord so they appear instantly
+    synced = await bot.tree.sync()
+    print(f"Synced {len(synced)} slash command(s).")
+  except Exception as e:
+    print(f"Failed to sync commands: {e}")
   print(f"Online as {bot.user}")
 
 
-@bot.command(name="find")
-async def find(ctx, *, q=None):
-  if not q:
-    await ctx.send("Usage: `!find duels`")
-    return
-  q = q.lower()
+@bot.tree.command(name="find", description="Search for a script by name or key")
+@app_commands.describe(query="The script name or key you are looking for")
+async def find(interaction: discord.Interaction, query: str):
+  q = query.lower()
   for k, v in SCRIPTS.items():
     if q in k.lower() or q in v["name"].lower():
       embed = discord.Embed(
           title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400
       )
-      await ctx.send(embed=embed)
       load = v["loadstring"]
-      await ctx.send(f"**📱 Mobile 1-tap:**\n`{load}`")
-      await ctx.send(f"**💻 PC:**\n```lua\n{load}\n```")
+      await interaction.response.send_message(embed=embed)
+      await interaction.followup.send(f"**📱 Mobile 1-tap:**\n`{load}`")
+      await interaction.followup.send(f"**💻 PC:**\n```lua\n{load}\n```")
       return
-  await ctx.send("Not found. Try `!list`")
 
-
-@bot.command(name="list")
-async def list_s(ctx):
-  await ctx.send(
-      "**SCRIPTS**\n"
-      + "\n".join([f"`{k}` - {v['name']}" for k, v in SCRIPTS.items()])
+  await interaction.response.send_message(
+      "❌ Not found. Try `/list`", ephemeral=True
   )
 
 
-@bot.command(name="add")
-async def add_script(ctx, *, content: str = None):
-  # Check if user has Administrator permissions
-  if not ctx.author.guild_permissions.administrator:
-    await ctx.send(
+@bot.tree.command(name="list", description="List all available scripts")
+async def list_s(interaction: discord.Interaction):
+  text = "**SCRIPTS**\n" + "\n".join(
+      [f"`{k}` - {v['name']}" for k, v in SCRIPTS.items()]
+  )
+  await interaction.response.send_message(text)
+
+
+@bot.tree.command(name="add", description="Add a new script (Admin only)")
+@app_commands.describe(
+    key="Unique short key (e.g., duels)",
+    name="Display name of the script",
+    desc="Short description",
+    loadstring="The full lua loadstring",
+)
+async def add_script(
+    interaction: discord.Interaction,
+    key: str,
+    name: str,
+    desc: str,
+    loadstring: str,
+):
+  if not interaction.user.guild_permissions.administrator:
+    await interaction.response.send_message(
         "❌ You need **Administrator** permissions to use this command.",
-        delete_after=5,
+        ephemeral=True,
     )
     return
 
-  if not content:
-    await ctx.send(
-        "❌ **Invalid usage!**\n"
-        "**Format:** `!add key | Display Name | Description | loadstring`\n"
-        "*(Example: `!add duels | sab duels | Cool script |"
-        ' loadstring(game:HttpGet(...))()`)*'
-    )
-    return
-
-  # Clean up and split everything by '|'
-  cleaned = content.lstrip("|").strip()
-  parts = [p.strip() for p in cleaned.split("|")]
-
-  if len(parts) < 4:
-    await ctx.send(
-        "❌ **Format error!** You need all 4 parts separated by `|`:\n"
-        "`!add key | Display Name | Description | loadstring`"
-    )
-    return
-
-  key = parts[0].lower()
-  name = parts[1]
-  desc = parts[2]
-  # Join back in case the loadstring itself contains any pipe symbols
-  loadstring = "|".join(parts[3:])
-
-  SCRIPTS[key] = {"name": name, "desc": desc, "loadstring": loadstring}
-  await ctx.send(f"✅ Successfully added script: `{key}`")
+  key_clean = key.lower()
+  SCRIPTS[key_clean] = {"name": name, "desc": desc, "loadstring": loadstring}
+  await interaction.response.send_message(
+      f"✅ Successfully added script: `{key_clean}`"
+  )
 
 
-@bot.command(name="delete")
-async def delete_script(ctx, key: str = None):
-  # Check if user has Administrator permissions
-  if not ctx.author.guild_permissions.administrator:
-    await ctx.send(
+@bot.tree.command(name="delete", description="Delete an existing script (Admin only)")
+@app_commands.describe(key="The key of the script you want to delete")
+async def delete_script(interaction: discord.Interaction, key: str):
+  if not interaction.user.guild_permissions.administrator:
+    await interaction.response.send_message(
         "❌ You need **Administrator** permissions to use this command.",
-        delete_after=5,
+        ephemeral=True,
     )
     return
 
-  # If key is missing, show format guide
-  if not key:
-    await ctx.send(
-        "❌ **Invalid usage!**\n"
-        "**Format:** `!delete scriptkey`\n"
-        "*(Example: `!delete duels`)*"
+  key_clean = key.lower()
+  if key_clean in SCRIPTS:
+    del SCRIPTS[key_clean]
+    await interaction.response.send_message(
+        f"🗑️ Successfully deleted script: `{key_clean}`"
     )
-    return
-
-  key = key.lower()
-  if key in SCRIPTS:
-    del SCRIPTS[key]
-    await ctx.send(f"🗑️ Successfully deleted script: `{key}`")
   else:
-    await ctx.send(f"❌ Script `{key}` not found.")
+    await interaction.response.send_message(
+        f"❌ Script `{key_clean}` not found.", ephemeral=True
+    )
 
 
-@bot.command()
-async def say(ctx, *, message=None):
-  # Check if user has Administrator permissions
-  if not ctx.author.guild_permissions.administrator:
-    await ctx.send(
+@bot.tree.command(
+    name="say", description="Make the bot say a message (Admin only)"
+)
+@app_commands.describe(message="The message you want the bot to post")
+async def say(interaction: discord.Interaction, message: str):
+  if not interaction.user.guild_permissions.administrator:
+    await interaction.response.send_message(
         "❌ You need **Administrator** permissions to use this command.",
-        delete_after=5,
+        ephemeral=True,
     )
     return
-  if not message:
-    return
-  try:
-    await ctx.message.delete()
-  except:
-    pass
-  await ctx.send(message)
+
+  await interaction.response.send_message(
+      "✅ Message sent!", ephemeral=True
+  )  Ack command privately
+  await interaction.channel.send(message)
 
 
 # Keeps Render alive via Flask web server
