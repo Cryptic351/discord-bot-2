@@ -13,15 +13,15 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # SCRIPT DICTIONARY
 SCRIPTS = {
     "duels": {
-        "name": "Duels Fork - Other Channel",
-        "desc": "This version only shows in other channel",
+        "name": "LUA STUDIO DUELS",
+        "desc": "lua studio",
         "loadstring": (
-            'loadstring(game:HttpGet("https://pixel-perfect-render-80435.lovable.app/raw/t/10618fce6b9b35ed92d2f2ca1a4e6"))()'
+            'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cryptic351/luastudio8/refs/heads/main/(28).lua"))()'
         ),
     },
     "bladeball": {
-        "name": "Blade Ball Other",
-        "desc": "Alt version",
+        "name": "LUA STUDIO BLADE BALL",
+        "desc": "alt version",
         "loadstring": (
             'loadstring(game:HttpGet("https://pastebin.com/raw/xxxx"))()'
         ),
@@ -32,7 +32,6 @@ SCRIPTS = {
 @bot.event
 async def on_ready():
   try:
-    # Sync slash commands with Discord so they appear instantly
     synced = await bot.tree.sync()
     print(f"Synced {len(synced)} slash command(s).")
   except Exception as e:
@@ -49,11 +48,16 @@ async def find(interaction: discord.Interaction, query: str):
       embed = discord.Embed(
           title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400
       )
+      embed.set_footer(text="LUA STUDIO ON TOP | IM TOO GOOD")
       load = v["loadstring"]
 
-      # Bundle mobile/PC code blocks and the embed into a single response call
-      content = f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC:**\n```lua\n{load}\n```"
-      await interaction.response.send_message(content=content, embed=embed)
+      # 1. Send the embed first so it sits at the top
+      await interaction.response.send_message(embed=embed)
+      
+      # 2. Send the mobile and PC code blocks right underneath
+      await interaction.followup.send(
+          f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC / Normal:**\n```lua\n{load}\n```"
+      )
       return
 
   await interaction.response.send_message(
@@ -63,10 +67,19 @@ async def find(interaction: discord.Interaction, query: str):
 
 @bot.tree.command(name="list", description="List all available scripts")
 async def list_s(interaction: discord.Interaction):
-  text = "**SCRIPTS**\n" + "\n".join(
-      [f"`{k}` - {v['name']}" for k, v in SCRIPTS.items()]
+  embed = discord.Embed(
+      title="LUA STUDIO - ALL SCRIPTS",
+      color=0xFFD400
   )
-  await interaction.response.send_message(text)
+  
+  content_lines = ["Use `/find <name>` - No more scrolling 20 channels\n"]
+  for k, v in SCRIPTS.items():
+      content_lines.append(f"**{v['name'].upper()}**\n`/find {k}` - {v['desc']}")
+      
+  embed.description = "\n\n".join(content_lines)
+  embed.set_footer(text="Yellow & Black | Pixel Logo | Fade-In")
+  
+  await interaction.response.send_message(embed=embed)
 
 
 @bot.tree.command(name="add", description="Add a new script (Admin only)")
@@ -92,9 +105,14 @@ async def add_script(
 
   key_clean = key.lower()
   SCRIPTS[key_clean] = {"name": name, "desc": desc, "loadstring": loadstring}
-  await interaction.response.send_message(
-      f"✅ Successfully added script: `{key_clean}`"
+  
+  # Success embed styled to match your screenshot reference[cite: 6]
+  embed = discord.Embed(
+      title="✅ SCRIPT ADDED",
+      description=f"**{name.upper()}** added as `{key_clean}`\n\n**Loadstring**\n```lua\n{loadstring}\n```",
+      color=0x57F287  # Discord Green
   )
+  await interaction.response.send_message(embed=embed)
 
 
 @bot.tree.command(name="delete", description="Delete an existing script (Admin only)")
