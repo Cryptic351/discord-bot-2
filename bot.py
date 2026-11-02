@@ -51,13 +51,9 @@ async def find(interaction: discord.Interaction, query: str):
       )
       load = v["loadstring"]
 
-      # 1. Send the embed first
-      await interaction.response.send_message(embed=embed)
-      
-      # 2. Send the mobile and PC versions as a followup
-      await interaction.followup.send(
-          f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC:**\n```lua\n{load}\n```"
-      )
+      # Bundle mobile/PC code blocks and the embed into a single response call
+      content = f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC:**\n```lua\n{load}\n```"
+      await interaction.response.send_message(content=content, embed=embed)
       return
 
   await interaction.response.send_message(
