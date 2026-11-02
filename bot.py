@@ -13,10 +13,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # SCRIPT DICTIONARY
 SCRIPTS = {
     "duels": {
-        "name": "LUA STUDIO DUELS",
-        "desc": "lua studio",
+        "name": "LUA STUDIO-DUELS",
+        "desc": "Challenge other members, test your skills, and prove yourself in intense 1v1 battles.",
         "loadstring": (
-            'loadstring(game:HttpGet("https://pixel-perfect-render-80435.lovable.app/raw/t/10618fce6b9b35ed92d2f2ca1a4e6"))()'
+            'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cryptic351/luastudio8/refs/heads/main/(28).lua"))()'
         ),
     },
     "bladeball": {
@@ -27,6 +27,11 @@ SCRIPTS = {
         ),
     },
 }
+
+# /find output layout:
+#   "embed" -> one message, loadstrings sit inside the embed under the description
+#   "split" -> embed message first, loadstrings as a second message below it
+FIND_LAYOUT = "embed"
 
 
 @bot.event
@@ -48,9 +53,22 @@ async def find(interaction: discord.Interaction, query: str):
       embed = discord.Embed(
           title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400
       )
+      embed.set_footer(text="LUA STUDIO ON TOP | IM TOO GOOD")
       load = v["loadstring"]
-      content = f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC:**\n```lua\n{load}\n```"
-      await interaction.response.send_message(content=content, embed=embed)
+
+      if FIND_LAYOUT == "split":
+        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(
+            f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC / Normal:**\n```lua\n{load}\n```"
+        )
+      else:
+        embed.add_field(
+            name="📱 Mobile 1-tap", value=f"`{load}`", inline=False
+        )
+        embed.add_field(
+            name="💻 PC / Normal", value=f"```lua\n{load}\n```", inline=False
+        )
+        await interaction.response.send_message(embed=embed)
       return
 
   await interaction.response.send_message(
@@ -65,10 +83,7 @@ async def list_s(interaction: discord.Interaction):
       color=0xFFD400
   )
   
-  # Top callout line matching the screenshot
   content_lines = ["Use `/find <name>` - No more scrolling 20 channels\n"]
-  
-  # Add each script formatted as: **NAME** \n `/find key` - desc
   for k, v in SCRIPTS.items():
       content_lines.append(f"**{v['name'].upper()}**\n`/find {k}` - {v['desc']}")
       
@@ -101,9 +116,13 @@ async def add_script(
 
   key_clean = key.lower()
   SCRIPTS[key_clean] = {"name": name, "desc": desc, "loadstring": loadstring}
-  await interaction.response.send_message(
-      f"✅ Successfully added script: `{key_clean}`"
+  
+  embed = discord.Embed(
+      title="✅ SCRIPT ADDED",
+      description=f"**{name.upper()}** added as `{key_clean}`\n\n**Loadstring**\n```lua\n{loadstring}\n```",
+      color=0x57F287
   )
+  await interaction.response.send_message(embed=embed)
 
 
 @bot.tree.command(name="delete", description="Delete an existing script (Admin only)")
