@@ -13,8 +13,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # SCRIPT DICTIONARY
 SCRIPTS = {
     "duels": {
-        "name": "LUA STUDIO DUELS",
-        "desc": "lua studio",
+        "name": "LUA STUDIO-DUELS",
+        "desc": "Challenge other members, test your skills, and prove yourself in intense 1v1 battles.",
         "loadstring": (
             'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cryptic351/luastudio8/refs/heads/main/(28).lua"))()'
         ),
@@ -51,10 +51,10 @@ async def find(interaction: discord.Interaction, query: str):
       embed.set_footer(text="LUA STUDIO ON TOP | IM TOO GOOD")
       load = v["loadstring"]
 
-      # 1. Send the embed first so it sits at the top
+      # 1. Respond to the interaction with the embed first
       await interaction.response.send_message(embed=embed)
       
-      # 2. Send the mobile and PC code blocks right underneath
+      # 2. Send the mobile and PC code blocks right underneath using followup
       await interaction.followup.send(
           f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC / Normal:**\n```lua\n{load}\n```"
       )
@@ -106,11 +106,10 @@ async def add_script(
   key_clean = key.lower()
   SCRIPTS[key_clean] = {"name": name, "desc": desc, "loadstring": loadstring}
   
-  # Success embed styled to match your screenshot reference[cite: 6]
   embed = discord.Embed(
       title="✅ SCRIPT ADDED",
       description=f"**{name.upper()}** added as `{key_clean}`\n\n**Loadstring**\n```lua\n{loadstring}\n```",
-      color=0x57F287  # Discord Green
+      color=0x57F287
   )
   await interaction.response.send_message(embed=embed)
 
