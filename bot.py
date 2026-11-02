@@ -60,9 +60,7 @@ async def list_s(ctx):
 
 
 @bot.command(name="add")
-async def add_script(
-    ctx, key: str = None, name: str = None, desc: str = None, loadstring: str = None
-):
+async def add_script(ctx, *, content: str = None):
   # Check if user has Administrator permissions
   if not ctx.author.guild_permissions.administrator:
     await ctx.send(
@@ -71,17 +69,32 @@ async def add_script(
     )
     return
 
-  # If any part is missing, show the correct format guide
-  if not key or not name or not desc or not loadstring:
+  if not content:
     await ctx.send(
         "❌ **Invalid usage!**\n"
-        "**Format:** `!add key \"Display Name\" \"Description\""
-        ' "loadstring(game:HttpGet(...))()"`\n'
-        "*(Make sure to use quotes for names, descriptions, and loadstrings that have spaces!)*"
+        "**Format:** `!add key | Display Name | Description | loadstring`\n"
+        "*(Example: `!add duels | sab duels | Cool script |"
+        ' loadstring(game:HttpGet(...))()`)*'
     )
     return
 
-  key = key.lower()
+  # Clean up and split everything by '|'
+  cleaned = content.lstrip("|").strip()
+  parts = [p.strip() for p in cleaned.split("|")]
+
+  if len(parts) < 4:
+    await ctx.send(
+        "❌ **Format error!** You need all 4 parts separated by `|`:\n"
+        "`!add key | Display Name | Description | loadstring`"
+    )
+    return
+
+  key = parts[0].lower()
+  name = parts[1]
+  desc = parts[2]
+  # Join back in case the loadstring itself contains any pipe symbols
+  loadstring = "|".join(parts[3:])
+
   SCRIPTS[key] = {"name": name, "desc": desc, "loadstring": loadstring}
   await ctx.send(f"✅ Successfully added script: `{key}`")
 
