@@ -8,8 +8,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-YOUR_ID = 1407065909654323303
-
 # SCRIPT DICTIONARY
 SCRIPTS = {
     "duels": {
@@ -65,8 +63,12 @@ async def list_s(ctx):
 async def add_script(
     ctx, key: str = None, name: str = None, desc: str = None, loadstring: str = None
 ):
-  if ctx.author.id != YOUR_ID:
-    await ctx.send("❌ Only creator can add scripts.", delete_after=5)
+  # Check if user has Administrator permissions
+  if not ctx.author.guild_permissions.administrator:
+    await ctx.send(
+        "❌ You need **Administrator** permissions to use this command.",
+        delete_after=5,
+    )
     return
 
   # If any part is missing, show the correct format guide
@@ -86,8 +88,12 @@ async def add_script(
 
 @bot.command(name="delete")
 async def delete_script(ctx, key: str = None):
-  if ctx.author.id != YOUR_ID:
-    await ctx.send("❌ Only creator can delete scripts.", delete_after=5)
+  # Check if user has Administrator permissions
+  if not ctx.author.guild_permissions.administrator:
+    await ctx.send(
+        "❌ You need **Administrator** permissions to use this command.",
+        delete_after=5,
+    )
     return
 
   # If key is missing, show format guide
@@ -109,8 +115,12 @@ async def delete_script(ctx, key: str = None):
 
 @bot.command()
 async def say(ctx, *, message=None):
-  if ctx.author.id != YOUR_ID:
-    await ctx.send("❌ Only creator", delete_after=5)
+  # Check if user has Administrator permissions
+  if not ctx.author.guild_permissions.administrator:
+    await ctx.send(
+        "❌ You need **Administrator** permissions to use this command.",
+        delete_after=5,
+    )
     return
   if not message:
     return
