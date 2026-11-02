@@ -50,9 +50,14 @@ async def find(interaction: discord.Interaction, query: str):
           title=f"💛 {v['name']}", description=v["desc"], color=0xFFD400
       )
       load = v["loadstring"]
+
+      # 1. Send the embed first
       await interaction.response.send_message(embed=embed)
-      await interaction.followup.send(f"**📱 Mobile 1-tap:**\n`{load}`")
-      await interaction.followup.send(f"**💻 PC:**\n```lua\n{load}\n```")
+      
+      # 2. Send the mobile and PC versions as a followup
+      await interaction.followup.send(
+          f"**📱 Mobile 1-tap:**\n`{load}`\n\n**💻 PC:**\n```lua\n{load}\n```"
+      )
       return
 
   await interaction.response.send_message(
